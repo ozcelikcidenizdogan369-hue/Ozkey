@@ -252,7 +252,7 @@ io.to(roomId).emit("indicatorSelected", {
 });
 
     // Oyuncunun Taş Çekmesi
-    socket.on("drawTile", () => {
+   socket.on("drawTile", () => {
 
     if (!socket.roomId) return;
 
@@ -260,21 +260,26 @@ io.to(roomId).emit("indicatorSelected", {
 
     if (!room) return;
 
+    if (room.currentTurn !== socket.id) {
+        socket.emit("invalidMove", "Sıra sende değil.");
+        return;
+    }
+
     const player = gameState.players[socket.id];
 
     if (!player) return;
 
-    if (room.currentTurn !== socket.id) {
-    socket.emit("invalidMove", "Sıra sende değil.");
-    return;
-}
+    // Oyuncu zaten 15 taşa sahipse tekrar çekemez
+    if (player.hand.length >= 15) {
+        socket.emit("invalidMove", "Önce taş atmalısın.");
+        return;
+    }
 
     if (room.deck.length === 0) {
-
-        socket.emit("deckEmpty");
-
+        io.to(socket.roomId).emit("gameOver", {
+            reason: "Deste bitti."
+        });
         return;
-
     }
 
     const tile = room.deck.pop();
@@ -283,11 +288,7 @@ io.to(roomId).emit("indicatorSelected", {
 
     socket.emit("tileDrawn", tile);
 
-    io.to(socket.roomId).emit("gameState", {
-    discardPile: room.discardPile,
-    deckCount: room.deck.length,
-    currentTurn: room.currentTurn
-});
+    io.to(socket.roomId).emit("deckCount", room.deck.length);
 
     io.to(socket.roomId).emit("chatMessage", {
         sender: "Sistem",
@@ -296,9 +297,26 @@ io.to(roomId).emit("indicatorSelected", {
 
 });
 
-
     // Oyuncunun Taş Atması
    socket.on("discardTile", (tile) => {
+
+    if (room.currentTurn !== socket.id) {
+    socket.emit("invalidMove", "Sıra sende değil.");
+    return;
+}
+
+    if (player.hand.length !== 15) {
+    socket.emit("invalidMove", "Önce taş çekmelisin.");
+    return;
+}
+    
+    if (room.players.length < 4) {
+
+    io.to(room.id).emit("gameCancelled");
+
+    delete gameRooms[room.id];
+
+}
 
     if (!socket.roomId) return;
 
@@ -324,6 +342,7 @@ io.to(roomId).emit("indicatorSelected", {
     const discardedTile = player.hand.splice(tileIndex, 1)[0];
 
     room.discardPile.push(discardedTile);
+    room.lastDiscard = discardedTile;
 
     io.to(socket.roomId).emit("gameState", {
     discardPile: room.discardPile,
@@ -332,9 +351,11 @@ io.to(roomId).emit("indicatorSelected", {
 });
 
     io.to(socket.roomId).emit("playerDiscarded", {
-        playerId: socket.id,
-        tile: discardedTile
-    });
+    playerId: socket.id,
+    tile: discardedTile,
+    discardPile: room.discardPile,
+    currentTurn: room.currentTurn
+});
     
 const currentIndex = room.players.indexOf(socket.id);
 
@@ -355,21 +376,48 @@ io.to(socket.roomId).emit("gameState", {
 
 
  // Bağlantı Kopması
-socket.on('disconnect', () => {
+socket.on("disconnect", () => {
 
-    delete gameState.players[socket.id];
+    console.log("Oyuncu ayrıldı:", socket.id);
 
-console.log("Oyuncu silindi:", socket.id);
+    matchmakingQueue =
+        matchmakingQueue.filter(id => id !== socket.id);
 
-    matchmakingQueue = matchmakingQueue.filter(id => id !== socket.id);
-    activePlayers = activePlayers.filter(p => p.id !== socket.id);
+    activePlayers =
+        activePlayers.filter(p => p.id !== socket.id);
 
-    io.emit('chatMessage', {
-        sender: 'Sistem',
-        text: 'Bir oyuncu masadan ayrıldı.'
-    });
+    if (socket.roomId && gameRooms[socket.roomId]) {
 
-    console.log('Oyuncu ayrıldı:', socket.id);
+        const room = gameRooms[socket.roomId];
+
+        room.players =
+            room.players.filter(id => id !== socket.id);
+
+        delete gameState.players[socket.id];
+
+        socket.to(socket.roomId).emit("chatMessage", {
+            sender: "Sistem",
+            text: "Bir oyuncu masadan ayrıldı."
+        });
+
+        socket.to(socket.roomId).emit("playerLeft", {
+            playerId: socket.id
+        });
+
+        if (room.players.length === 0) {
+
+            delete gameRooms[socket.roomId];
+
+            console.log("Oda silindi:", socket.roomId);
+
+        }
+
+    } else {
+
+        delete gameState.players[socket.id];
+
+    }
+
 });
 
 });
@@ -378,4 +426,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Okey 3D Pro Sunucusu ${PORT} portunda aktif!`);
     
-});
+})
