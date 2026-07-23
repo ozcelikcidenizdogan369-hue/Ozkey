@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Okey Online - okeyzlkc.com</title>
+    <meta name="description" content="ZlkcOkey Online - Arkadaşlarınla ve canlı oyuncularla okey oyna!" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph & Social Meta -->
+    <meta property="og:title" content="Okey Online - okeyzlkc.com" />
+    <meta property="og:description" content="Okey 3D Pro Online - Gerçek zamanlı okey oyunu." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Okey Online - okeyzlkc.com" />
+    <meta name="twitter:description" content="Okey 3D Pro Online - Gerçek zamanlı okey oyunu." />
+    
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #0b1a0e;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* MODAL PENCERELER */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: linear-gradient(180deg, #22512a 0%, #0d2111 100%);
+            border: 6px solid #5a381e;
+            border-radius: 20px;
+            padding: 25px;
+            width: 400px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .modal-content h2 { margin: 0; color: #f7e6c4; text-align: center; }
+
+        /* ANA MENÜ */
+        #main-menu {
+            background: radial-gradient(circle, #22512a 0%, #0d2111 100%);
+            padding: 40px;
+            border-radius: 25px;
+            border: 10px solid #5a381e;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 420px;
+            z-index: 100;
+        }
+        #main-menu h1 { margin: 0; font-size: 36px; color: #f7e6c4; text-shadow: 3px 3px 0 #3d2310; }
+
+        .profile-card-mini {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #a3c9a8;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .profile-card-mini img {
+            width: 50px; height: 50px; border-radius: 50%; border: 2px solid #f7e6c4; object-fit: cover;
+        }
+
+        /* OYUN MASASI */
+        #game-board {
+            display: none;
+            position: relative;
+            width: 1050px;
+            height: 680px;
+            background: radial-gradient(circle, #276332 0%, #14381b 80%, #0a1f0e 100%);
+            border: 24px solid #4a2b15;
+            border-radius: 40px;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.9);
+        }
+
+        .icon-btn {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(180deg, #c3834c 0%, #70401b 100%);
+            border: 2px solid #f2cf96;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            z-index: 50;
+        }
+        .icon-btn-left { top: 15px; left: 15px; }
+
+        .rack-3d-base {
+            background: linear-gradient(180deg, #6e4120 0%, #3d2310 100%);
+            border: 2px solid #281508;
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            padding: 4px 10px;
+            gap: 10px;
+            position: absolute;
+            color: #d1b490;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .rack-3d-base.active { border-color: #ffd166; box-shadow: 0 0 15px #ffd166; }
+
+        .bot-avatar {
+            width: 36px; height: 36px; border-radius: 50%; border: 2px solid #f2cf96; object-fit: cover;
+        }
+
+        .rack-top { top: 15px; left: 50%; transform: translateX(-50%); width: 320px; height: 50px; }
+        .rack-left { top: 45%; left: 15px; transform: translateY(-50%); width: 180px; height: 50px; }
+        .rack-right { top: 45%; right: 15px; transform: translateY(-50%); width: 180px; height: 50px; }
+
+        .center-area {
+            position: absolute;
+            top: 45%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; align-items: center; gap: 30px;
+        }
+        .deck-box, .discard-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px 15px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: bold; color: #cce3d0;
+        }
+        .discard-box.drag-over { background: rgba(46, 204, 113, 0.3); border-color: #2ecc71; }
+
+        .deck-stack-3d {
+            width: 52px; height: 70px; background: #801010;
+            border: 3px solid #e0c8a0; border-radius: 6px;
+            box-shadow: -2px 2px 0 #500808, -4px 4px 0 #300404, -6px 6px 10px rgba(0,0,0,0.6);
+            cursor: pointer;
+        }
+
+        .tile {
+            width: 44px; height: 65px;
+            background: linear-gradient(180deg, #ffffff 0%, #f4eee1 80%, #e3d7c3 100%);
+            border-radius: 7px; border: 1px solid #c9bda8;
+            box-shadow: inset 0 2px 0 #ffffff, 0 4px 0 #b3a48e, 0 6px 10px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            font-weight: 900; font-size: 22px; cursor: grab; position: relative; padding-top: 3px;
+
+            transition: all 0.15s ease;
+        }
+        .tile.selected { transform: translateY(-10px); border: 2px solid #e63946; }
+
+        .tile::after {
+            content: ''; position: absolute; bottom: 6px; width: 13px; height: 13px;
+            background: radial-gradient(circle, #dbcea6 0%, #beaf84 100%); border-radius: 50%;
+        }
+        .tile.okey-tile { font-size: 10px; color: #333; justify-content: center; gap: 2px; }
+        .tile.okey-tile::after { display: none; }
+        .star-icon { color: #d4af37; font-size: 15px; }
+
+        .red { color: #cc2222; } .black { color: #1a1a1a; } .blue { color: #1d70b8; } .yellow { color: #e69d00; }
+
+        .player-rack-container {
+            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 780px; height: 165px;
+            background: linear-gradient(180deg, #8a5229 0%, #522f14 50%, #361e0b 100%);
+            border: 4px solid #241306; border-radius: 12px;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; justify-content: space-between; padding: 8px 12px;
+        }
+        .rack-row { display: flex; gap: 5px; height: 70px; align-items: flex-end; background: rgba(0, 0, 0, 0.15); border-bottom: 3px solid #2b1709; padding: 0 5px 3px 5px; }
+
+        /* MASA SOHBETİ */
+        #chat-window {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 260px;
+            height: 220px;
+            background: rgba(13, 33, 17, 0.95);
+            border: 2px solid #a3c9a8;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            z-index: 90;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+        #chat-messages {
+            flex: 1; padding: 8px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 6px;
+        }
+        .chat-msg { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; }
+        .chat-msg b { color: #f7e6c4; }
+        #chat-input-area { display: flex; padding: 5px; gap: 4px; border-top: 1px solid rgba(255,255,255,0.1); }
+        #chat-input-area input { flex: 1; background: #0b1a0e; border: 1px solid #2e5935; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+
+        .btn-ahoy {
+            padding: 8px 18px; font-size: 12px; font-weight: 900; border: 2px solid #fff;
+            border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+        }
+        .btn-green { background: linear-gradient(180deg, #4ea93b 0%, #29661c 100%); color: white; }
+        .btn-orange { background: linear-gradient(180deg, #f39c12 0%, #c0392b 100%); color: white; }
+        .btn-blue { background: linear-gradient(180deg, #2980b9 0%, #1a5276 100%); color: white; }
+        
+        input[type="text"] {
+            padding: 8px; border-radius: 6px; border: 1px solid #a3c9a8; background: #0b1a0e; color: white;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+        <!-- 1. PROFİL MODALI -->
+        <div class="modal" id="profile-modal">
+            <div class="modal-content">
+                <h2>Profil Düzenle</h2>
+                <label style="font-size:12px;">Oyuncu Adı:</label>
+                <input type="text" id="input-username" value="Oyuncu_1">
+                <label style="font-size:12px;">Profil Resmi Seç:</label>
+                <input type="file" id="input-avatar-file" accept="image/*" onchange="previewImage(event)" style="font-size:11px;">
+                <div style="text-align:center;">
+                    <img id="avatar-preview" src="https://picsum.photos/100/100?random=99" style="width:70px; height:70px; border-radius:50%; border:2px solid #f7e6c4;">
+                </div>
+                <button class="btn-ahoy btn-green" onclick="saveProfile()">KAYDET</button>
+                <button class="btn-ahoy btn-orange" onclick="closeModal('profile-modal')">KAPAT</button>
+            </div>
+        </div>
+
+        <!-- 2. ARKADAŞ MODALI -->
+        <div class="modal" id="friends-modal">
+            <div class="modal-content">
+                <h2>Arkadaş Menüsü</h2>
+                <div style="font-size:12px; color:#a3c9a8;">Oyuncu ID'niz: <b id="my-id-display" style="color:#ffd166;">#OKEY-1234</b></div>
+                <hr style="width:100%; border-color:rgba(255,255,255,0.1);">
+                <label style="font-size:12px;">Arkadaş ID'si ile Ekle:</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="input-friend-id" placeholder="Örn: #OKEY-8842" style="flex:1;">
+                    <button class="btn-ahoy btn-blue" onclick="addFriend()">Ekle</button>
+                </div>
+                <div style="font-size:12px; margin-top:10px;">Arkadaş Listeniz:</div>
+                <div id="friends-list" style="max-height:100px; overflow-y:auto; display:flex; flex-direction:column; gap:5px;"></div>
+                <button class="btn-ahoy btn-orange" onclick="closeModal('friends-modal')">KAPAT</button>
+            </div>
+        </div>
+
+        <!-- 3. ANA MENÜ -->
+        <div id="main-menu">
+            <h1>OZKEY Eğlen & Oyna</h1>
+            <div class="profile-card-mini">
+                <img id="menu-avatar" src="https://picsum.photos/100/100?random=99" alt="Avatar">
+                <div style="text-align:left; flex:1;">
+                    <div style="font-weight:bold; font-size:14px;" id="menu-username">Oyuncu_1</div>
+                    <div style="font-size:11px; color:#ffd166;" id="menu-user-id">#OKEY-1234</div>
+                </div>
+                <button class="btn-ahoy btn-blue" style="padding:4px 8px; font-size:10px;" onclick="openModal('profile-modal')">Düzenle</button>
+            </div>
+
+<button class="btn-ahoy btn-green"
+style="font-size:15px; padding:12px;"
+onclick="startGame('ai')">
+🤖 Yapay Zeka ile Oyna
+</button>
+
+<button class="btn-ahoy btn-blue"
+style="font-size:15px; padding:12px;"
+onclick="findMatch()">
+🌐 Online / Canlı Salon
+</button>
+
+<button class="btn-ahoy btn-orange"
+style="font-size:13px;"
+onclick="openModal('friends-modal')">
+👥 Arkadaş Ekle / Davet Et
+</button>
+
+</div>
+        <!-- 4. OYUN MASASI -->
+        <div id="game-board">
+            <div class="icon-btn icon-btn-left" onclick="backToMenu()">🏠</div>
+
+            <div class="rack-3d-base rack-left" id="bot-card-0">
+                <img class="bot-avatar" id="bot-img-0" src="" alt="Avatar">
+                <span id="bot-name-0">RAKİP 1</span>
+            </div>
+
+            <div class="rack-3d-base rack-top" id="bot-card-1">
+                <img class="bot-avatar" id="bot-img-1" src="" alt="Avatar">
+                <span id="bot-name-1">RAKİP 2</span>
+            </div>
+
+            <div class="rack-3d-base rack-right" id="bot-card-2">
+                <img class="bot-avatar" id="bot-img-2" src="" alt="Avatar">
+                <span id="bot-name-2">RAKİP 3</span>
+            </div>
+
+            <div class="center-area">
+                <div class="deck-box">
+                    <div class="deck-stack-3d" onclick="playerDrawTile()"></div>
+                    <span id="deck-count">DESTE (78)</span>
+                </div>
+
+                <div class="discard-box" id="discard-zone" ondragover="allowDiscardDrop(event)" ondragleave="leaveDiscardDrop(event)" ondrop="dropToDiscard(event)">
+                    <span>ORTA (BURAYA BIRAK)</span>
+                    <div id="discard-slot" style="display:flex; gap:5px; min-width:44px; min-height:65px;"></div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+                    <div style="font-size:11px; font-weight:800; color:#fce38a;" id="status-text">SIRA SİZDE!</div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-ahoy btn-green" onclick="playerDrawTile()">TAŞ ÇEK</button>
+                        <button class="btn-ahoy btn-orange" onclick="playerDiscardTile()">TAŞ AT</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT PENCERESİ -->
+            <div id="chat-window">
+                <div style="background:rgba(0,0,0,0.3); padding:5px; font-size:11px; font-weight:bold; color:#f7e6c4; text-align:center;">💬 Masa Sohbeti</div>
+                <div id="chat-messages">
+                    <div class="chat-msg"><b>Sistem:</b> Masaya hoş geldiniz!</div>
+                </div>
+                <div id="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Mesaj yazın..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn-ahoy btn-green" style="padding:4px 8px;" onclick="sendChatMessage()">>></button>
+                </div>
+            </div>
+
+            <div class="player-rack-container">
+                <div class="rack-row" id="rack-top"></div>
+                <div class="rack-row" id="rack-bottom"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOCKET.IO VE OYUN MANTIĞI -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = (typeof io !== 'undefined') ? io() : null;
+        const isMobile =
+    /Android|iPhone|iPad|iPod/i.test(
+        navigator.userAgent
+    );
+
+const isTouch =
+    ('ontouchstart' in window) ||
+    (navigator.maxTouchPoints > 0);
+
+console.log("Mobil:", isMobile);
+console.log("Dokunmatik:", isTouch);
+
+        let myProfile = {
+            name: "Oyuncu_1",
+            id: "#OKEY-" + Math.floor(1000 + Math.random() * 9000),
+            avatar: "https://picsum.photos/100/100?random=99"
+        };
+
+        let friendsList = ["#OKEY-4421 (Bengü)", "#OKEY-9012 (Mesut)"];
+        const namePool = ["Seval", "Bengü", "Tutku", "Mesut", "Meftune", "Aysun", "Berkan", "Aykan", "Deniz"];
+        const colors = ['red', 'black', 'blue', 'yellow'];
+
+        let deck = [], playerRack = [], bots = [[], [], []], botNames = [];
+        let lastDiscard = null, selectedIndex = null, draggedIndex = null;
+        let turn = 0, hasDrawn = false, gameMode = 'ai';
+
+        window.onload = () => {
+            document.getElementById('my-id-display').innerText = myProfile.id;
+            document.getElementById('menu-user-id').innerText = myProfile.id;
+            updateFriendsUI();
+        };
+
+        if (socket) {
+            socket.on('chatMessage', (data) => addChatMessage(data.sender, data.text));
+            socket.on('playerDiscarded', (data) => {
+                lastDiscard = data.tile;
+                updateUI();
+            });
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                document.getElementById('avatar-preview').src = reader.result;
+            };
+            if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function saveProfile() {
+            myProfile.name = document.getElementById('input-username').value || "Oyuncu_1";
+            myProfile.avatar = document.getElementById('avatar-preview').src;
+            document.getElementById('menu-username').innerText = myProfile.name;
+            document.getElementById('menu-avatar').src = myProfile.avatar;
+            closeModal('profile-modal');
+        }
+
+        function addFriend() {
+            let friendId = document.getElementById('input-friend-id').value;
+            if (friendId) {
+                friendsList.push(friendId);
+                updateFriendsUI();
+                document.getElementById('input-friend-id').value = '';
+            }
+        }
+
+        function updateFriendsUI() {
+            let listEl = document.getElementById('friends-list');
+            listEl.innerHTML = '';
+            friendsList.forEach(f => {
+                let div = document.createElement('div');
+                div.style.cssText = "display:flex; justify-content:space-between; background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:4px; font-size:11px;";
+                div.innerHTML = `<span>${f}</span><button class="btn-ahoy btn-green" style="padding:2px 6px; font-size:9px;" onclick="alert('Davet Gönderildi!')">Davet Et</button>`;
+                listEl.appendChild(div);
+            });
+        }
+
+        function sendChatMessage() {
+            let input = document.getElementById('chat-input');
+            let msg = input.value.trim();
+            if (!msg) return;
+
+            if (socket) socket.emit('sendMessage', { sender: myProfile.name, text: msg });
+            else addChatMessage(myProfile.name, msg);
+            input.value = '';
+        }
+
+        function addChatMessage(sender, text) {
+            let box = document.getElementById('chat-messages');
+            let div = document.createElement('div');
+            div.className = 'chat-msg';
+            div.innerHTML = `<b>${sender}:</b> ${text}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-board').style.display = 'block';
+
+            if (socket) socket.emit('joinGame', myProfile);
+
+           if (mode === 'ai') {
+
+    botNames = [...namePool]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+
+    for(let i=0; i<3; i++) {
+
+        document.getElementById(`bot-name-${i}`).innerText =
+            botNames[i].toUpperCase();
+
+        document.getElementById(`bot-img-${i}`).src =
+            `https://picsum.photos/100/100?random=${Math.floor(Math.random()*1000)}`;
+    }
+
+}
+            deck = createDeck();
+            playerRack = deck.splice(0, 15);
+            bots[0] = deck.splice(0, 14);
+            bots[1] = deck.splice(0, 14);
+            bots[2] = deck.splice(0, 14);
+
+            turn = 0; hasDrawn = true; lastDiscard = null; selectedIndex = null;
+            updateUI();
+        }
+
+        function createDeck() {
+            let d = [];
+            colors.forEach(c => {
+                for(let i=1; i<=13; i++) {
+                    d.push({ color: c, num: i });
+                    d.push({ color: c, num: i });
+                }
+            });
+            d.push({ color: 'black', num: 'OKEY', isJoker: true });
+            return d.sort(() => Math.random() - 0.5);
+        }
+
+        function backToMenu() {
+            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('game-board').style.display = 'none';
+        }
+
+        function dragStart(e, index) { draggedIndex = index; }
+        function dropOnRack(targetIndex) {
+        if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const movedTile = playerRack.splice(draggedIndex, 1)[0];
+    playerRack.splice(targetIndex, 0, movedTile);
+
+    draggedIndex = null;
+    updateUI();
+}
+        function allowDiscardDrop(e) { e.preventDefault(); document.getElementById('discard-zone').classList.add('drag-over'); }
+        function leaveDiscardDrop(e) { document.getElementById('discard-zone').classList.remove('drag-over'); }
+
+        function dropToDiscard(e) {
+            e.preventDefault();
+            document.getElementById('discard-zone').classList.remove('drag-over');
+            if (draggedIndex !== null) {
+                selectedIndex = draggedIndex;
+                playerDiscardTile();
+                draggedIndex = null;
+            }
+        }
+
+function createTileElement(tile, idx) {
+    if (!tile) return document.createElement("div");
+
+    let div = document.createElement("div");
+
+    div.className = tile.isJoker
+        ? `tile okey-tile ${selectedIndex === idx ? "selected" : ""}`
+        : `tile ${tile.color} ${selectedIndex === idx ? "selected" : ""}`;
+
+    div.innerHTML = tile.isJoker
+        ? `<b>OKEY</b><span class="star-icon">★</span>`
+        : `<span>${tile.num}</span>`;
+
+    // PC Drag
+    if (!isTouch) {
+        div.draggable = true;
+        div.ondragstart = () => dragStart(null, idx);
+        div.ondragover = e => e.preventDefault();
+        div.ondrop = () => dropOnRack(idx);
+    }
+
+    // Mobil Drag
+    if (isTouch) {
+
+        let startX = 0;
+        let startY = 0;
+
+        div.ontouchstart = (e) => {
+
+            draggedIndex = idx;
+
+            const touch = e.touches[0];
+
+            startX = touch.clientX;
+            startY = touch.clientY;
+
+            div.style.position = "fixed";
+            div.style.left = (startX - 22) + "px";
+            div.style.top = (startY - 32) + "px";
+
+            div.style.zIndex = "9999";
+            div.style.pointerEvents = "none";
+
+            div.style.transform = "scale(1.15)";
+        };
+
+        div.ontouchmove = (e) => {
+
+    e.preventDefault(); // EKLE
+
+    if (draggedIndex === null) return;
+
+    const touch = e.touches[0];
+
+    div.style.left = (touch.clientX - 22) + "px";
+    div.style.top = (touch.clientY - 32) + "px";
+};
+
+        div.ontouchend = (e) => {
+
+            const touch = e.changedTouches[0];
+
+            const target =
+                document.elementFromPoint(
+                    touch.clientX,
+                    touch.clientY
+                );
+
+            // Reset görünüm
+            div.style.position = "";
+            div.style.left = "";
+            div.style.top = "";
+            div.style.zIndex = "";
+            div.style.pointerEvents = "";
+            div.style.transform = "";
+
+            const discardZone =
+                document.getElementById("discard-zone");
+
+            if (
+                target &&
+                (
+                    target === discardZone ||
+                    discardZone.contains(target)
+                )
+            ) {
+
+                selectedIndex = draggedIndex;
+                playerDiscardTile();
+
+                draggedIndex = null;
+                return;
+            }
+
+            const allTiles =
+                document.querySelectorAll(".tile");
+
+            allTiles.forEach((tileEl, targetIndex) => {
+
+                if (
+                    target === tileEl ||
+                    tileEl.contains(target)
+                ) {
+
+                    const movedTile =
+                        playerRack.splice(
+                            draggedIndex,
+                            1
+                        )[0];
+
+                    playerRack.splice(
+                        targetIndex,
+                        0,
+                        movedTile
+                    );
+
+                    updateUI();
+                }
+            });
+
+            draggedIndex = null;
+        };
+    }
+
+    div.onclick = () => {
+        selectedIndex =
+            selectedIndex === idx
+                ? null
+                : idx;
+
+        updateUI();
+    };
+
+    return div;
+}
+
+        function updateUI() {
+            const topRack = document.getElementById('rack-top');
+            const bottomRack = document.getElementById('rack-bottom');
+            topRack.innerHTML = ''; bottomRack.innerHTML = '';
+
+            playerRack.forEach((tile, idx) => {
+                let tileEl = createTileElement(tile, idx);
+                if (idx < 8) topRack.appendChild(tileEl);
+                else bottomRack.appendChild(tileEl);
+            });
+
+            for(let i=0; i<3; i++) {
+                document.getElementById(`bot-card-${i}`).classList.toggle('active', turn === (i+1));
+            }
+
+            document.getElementById('deck-count').innerText = `DESTE (${deck.length})`;
+            const discardSlot = document.getElementById('discard-slot');
+            discardSlot.innerHTML = '';
+            if (lastDiscard) discardSlot.appendChild(createTileElement(lastDiscard, -1));
+        }
+
+        function playerDrawTile() {
+
+    if (turn !== 0 || hasDrawn) return;
+
+    if (deck.length > 0) {
+
+        playerRack.push(deck.pop());
+
+        hasDrawn = true;
+
+        if (socket)
+            socket.emit('drawTile');
+
+        updateUI();
+    }
+}
+        
+
+        function playerDiscardTile() {
+            if (turn !== 0 || !hasDrawn || selectedIndex === null) return;
+            lastDiscard = playerRack.splice(selectedIndex, 1)[0];
+            if (socket) socket.emit('discardTile', lastDiscard);
+            
+            selectedIndex = null;
+            hasDrawn = false;
+            updateUI();
+
+            if(gameMode === 'ai') {
+                turn = 1;
+                document.getElementById('status-text').innerText = `${botNames[0].toUpperCase()} OYNUYOR...`;
+                setTimeout(playBots, 1200);
+            }
+        }
+
+function playBots() {
+    if (turn === 0) return;
+
+    let botIdx = turn - 1;
+
+    setTimeout(() => {
+        if (deck.length > 0) bots[botIdx].push(deck.pop());
+
+        let discardIdx =
+            Math.floor(Math.random() * bots[botIdx].length);
+
+        lastDiscard =
+            bots[botIdx].splice(discardIdx, 1)[0];
+
+        updateUI();
+
+        turn = (turn + 1) % 4;
+
+        if (turn !== 0) {
+            playBots();
+        } else {
+            document.getElementById('status-text').innerText =
+                "SIRA SİZDE!";
+        }
+
+    }, 1200);
+}
+
+function findMatch() {
+
+    document.getElementById('status-text').innerText =
+        "Eşleştiriliyor...";
+
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('game-board').style.display = 'block';
+
+    socket.emit("findMatch");
+}
+
+socket.on("matchFound", (data) => {
+
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('game-board').style.display = 'block';
+
+    document.getElementById('status-text').innerText =
+        "Eşleşme bulundu! Oda: " + data.roomId;
+
+});
+
+socket.on("gameStart", (data) => {
+
+    startGame('online');
+
+});
+ 
+    </script>
+    <script src="https://replit-cdn.com/replit-pill/replit-pill.global.js" data-referral-code="mdwx8h76wemy" data-repl-id="21296709-2c3a-4bec-9a8a-31aab7ab3e30"></script>
+  </body>
+</html>

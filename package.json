@@ -1,0 +1,13 @@
+{
+  "name": "okey-3d-pro",
+  "version": "1.0.0",
+  "description": "Okey 3D Pro - Online Salon",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  }
+}
