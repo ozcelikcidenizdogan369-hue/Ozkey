@@ -140,14 +140,22 @@ playerSocket.emit('matchFound', {
 
 });
 
-    // Bağlantı Kopması
-    socket.on('disconnect', () => {matchmakingQueue =
-    matchmakingQueue.filter(id => id !== socket.id);
-        activePlayers = activePlayers.filter(p => p.id !== socket.id);
-        io.emit('chatMessage', { sender: 'Sistem', text: `Bir oyuncu masadan ayrıldı.` });
-        console.log('Oyuncu ayrıldı:', socket.id);
+ // Bağlantı Kopması
+socket.on('disconnect', () => {
+
+    matchmakingQueue = matchmakingQueue.filter(id => id !== socket.id);
+    activePlayers = activePlayers.filter(p => p.id !== socket.id);
+
+    io.emit('chatMessage', {
+        sender: 'Sistem',
+        text: 'Bir oyuncu masadan ayrıldı.'
     });
+
+    console.log('Oyuncu ayrıldı:', socket.id);
 });
+
+
+
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
