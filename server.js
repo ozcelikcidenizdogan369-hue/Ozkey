@@ -138,7 +138,7 @@ playerSocket.emit('matchFound', {
 
   // Bağlantı Kopması
 
-});
+
 
  // Bağlantı Kopması
 socket.on('disconnect', () => {
@@ -154,7 +154,7 @@ socket.on('disconnect', () => {
     console.log('Oyuncu ayrıldı:', socket.id);
 });
 
-
+});
 
 
 const PORT = process.env.PORT || 3000;
